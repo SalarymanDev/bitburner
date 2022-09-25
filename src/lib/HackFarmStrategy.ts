@@ -1,13 +1,15 @@
-/** @param {NS} ns */
+import { NS } from '@ns'
+
 export class HackFarmStrategy {
-	constructor(ns, target) {
-		this.ns = ns;
-		this.target = target;
+    securityThreshold: number;
+    moneyThreshold: number;
+
+	constructor(private ns: NS, private target: string) {
 		this.securityThreshold = ns.getServerMinSecurityLevel(target) + 5;
 		this.moneyThreshold = ns.getServerMaxMoney(target) * 0.75;
 	}
 
-	async run() {
+	async run(): Promise<void> {
 		while (true) {
 			if (this.ns.getServerSecurityLevel(this.target) > this.securityThreshold) {
 				await this.ns.weaken(this.target);

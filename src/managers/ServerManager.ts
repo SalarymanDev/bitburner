@@ -1,18 +1,18 @@
-/** @param {NS} ns */
+import { NS } from '@ns';
 import { Queue } from '/lib/Queue';
 
 export class ServerManager {
-	constructor(ns) {
-		this.ns = ns;
-	}
+    private rootedHosts: string[] = [];
 
-	async scanHosts() {
-		const seenHosts = new Set();
-		const hostsToScan = new Queue();
+    constructor(private ns: NS) {}
+
+    public async scanHosts(): Promise<void> {
+        const seenHosts = new Set<string>();
+		const hostsToScan = new Queue<string>();
 		hostsToScan.enqueue(this.ns.getHostname());
 
-		while(!hostsToScan.isEmpty) {
-			const currentHost = hostsToScan.dequeue();
+		while(!hostsToScan.isEmpty()) {
+			const currentHost: string = hostsToScan.dequeue() ?? '';
 			const newHosts = this.ns.scan(currentHost)
 									.filter(host => !seenHosts.has(host));
 			newHosts.forEach(host => hostsToScan.enqueue(host));
@@ -21,7 +21,7 @@ export class ServerManager {
 
 		this.ns.tprint(`Visited Hosts: ${Array.from(seenHosts)}`);
 
-		const rootedHosts = [];
+		const rootedHosts: string[] = [];
 
 		for (const host of seenHosts.values()) {
 			if (this.ns.hasRootAccess(host)) {
@@ -31,5 +31,5 @@ export class ServerManager {
 
 		this.ns.tprint(`Rooted Hosts: ${rootedHosts}`);
 		this.rootedHosts = rootedHosts;
-	}
+    }
 }

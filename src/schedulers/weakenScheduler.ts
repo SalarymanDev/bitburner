@@ -1,6 +1,7 @@
-/** @param {NS} ns */
-export async function main(ns) {
-	const target = ns.args[0];
+import { NS } from '@ns'
+
+export async function main(ns : NS) : Promise<void> {
+    const target: string = ns.args[0] as string;
 
 	const timeToWeaken = ns.getWeakenTime(target);
 	const minsSecurityLevel = ns.getServerMinSecurityLevel(target);
