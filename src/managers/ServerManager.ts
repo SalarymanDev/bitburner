@@ -1,35 +1,23 @@
 import { NS } from '@ns';
-import { Queue } from '/lib/Queue';
+import { NetworkScanner } from '/lib/NetworkScanner';
 
 export class ServerManager {
-    private rootedHosts: string[] = [];
+    private rootedServers: Set<string>;
+	private purchasedServers: Set<string>;
+	private networkScanner: NetworkScanner;
 
-    constructor(private ns: NS) {}
+    constructor(private ns: NS) {
+		this.networkScanner = new NetworkScanner(this.ns);
+        this.rootedServers = this.networkScanner.getRootedNetwork();
+		this.purchasedServers = new Set<string>(this.ns.getPurchasedServers());
+		this.purchasedServers.forEach(host => this.rootedServers.delete(host));
+	}
 
-    public async scanHosts(): Promise<void> {
-        const seenHosts = new Set<string>();
-		const hostsToScan = new Queue<string>();
-		hostsToScan.enqueue(this.ns.getHostname());
+	public getRootedServers(): Set<string> {
+		return this.rootedServers;
+	}
 
-		while(!hostsToScan.isEmpty()) {
-			const currentHost: string = hostsToScan.dequeue() ?? '';
-			const newHosts = this.ns.scan(currentHost)
-									.filter(host => !seenHosts.has(host));
-			newHosts.forEach(host => hostsToScan.enqueue(host));
-			newHosts.forEach(host => seenHosts.add(host));
-		}
-
-		this.ns.tprint(`Visited Hosts: ${Array.from(seenHosts)}`);
-
-		const rootedHosts: string[] = [];
-
-		for (const host of seenHosts.values()) {
-			if (this.ns.hasRootAccess(host)) {
-				rootedHosts.push(host);
-			}
-		}
-
-		this.ns.tprint(`Rooted Hosts: ${rootedHosts}`);
-		this.rootedHosts = rootedHosts;
-    }
+	public getPurchasedServers(): Set<string> {
+		return this.purchasedServers;
+	}
 }
