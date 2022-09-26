@@ -1,9 +1,7 @@
-import { NS } from '@ns';
-import { ServerManager } from '/managers/ServerManager';
-
+import { NS } from '@ns'
+import { TargetRanker } from '/lib/TargetRanker';
 
 export async function main(ns : NS) : Promise<void> {
-    const serverManager = new ServerManager(ns);
-    ns.tprint(`Rooted Servers: ${[...serverManager.getRootedServers()]}`);
-    ns.tprint(`Purchased Servers: ${[...serverManager.getPurchasedServers()]}`);
+    const ranker = new TargetRanker(ns);
+    ns.tprint(`Ranked Targets: ${ranker.getRankedTargets()}`);
 }

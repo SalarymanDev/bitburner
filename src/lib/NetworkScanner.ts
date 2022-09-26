@@ -6,7 +6,7 @@ export class NetworkScanner {
     private rootedNetwork: Set<string>;
 
     constructor(private ns: NS) {
-        this.network = this.scanAll();
+        this.network = this.scan();
         this.rootedNetwork = new Set<string>([...this.network].filter(host => this.ns.hasRootAccess(host)));
     }
 
@@ -18,7 +18,12 @@ export class NetworkScanner {
         return this.rootedNetwork;
     }
 
-    private scanAll(): Set<string> {
+    public update(): void {
+        this.network = this.scan();
+        this.rootedNetwork = new Set<string>([...this.network].filter(host => this.ns.hasRootAccess(host)));
+    }
+
+    private scan(): Set<string> {
         const seenHosts = new Set<string>();
 		const hostsToScan = new Queue<string>();
 		hostsToScan.enqueue(this.ns.getHostname());

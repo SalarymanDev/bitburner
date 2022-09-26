@@ -1,81 +1,22 @@
 import { NS } from '@ns'
+import { NetworkScanner } from '/lib/NetworkScanner';
 
 export class TargetRanker {
     constructor(private ns: NS) {}
 
-    public rank(hosts: string[]): string[] {
-        const hostData: HostData[] = this.normalizeData(hosts.map(this.fetchData));
-        const rankings: RankRecord[] = hostData.map(this.calculateRank);
+    public getRankedTargets(): string[] {
+        const scanner = new NetworkScanner(this.ns);
+        const network = [...scanner.getNetwork()];
 
-        return rankings.sort((a: RankRecord, b: RankRecord) => {
-            if (a.rank < b.rank) {
-                return -1;
-            } else if (a.rank > b.rank) {
-                return 1;
-            }
-            return 0;
-        }).map(rank => rank.host);
-    }
+        const hackableTargets: string[] = [];
 
-    private calculateRank(data: HostData): RankRecord {
-        return {
-            host: data.host,
-            rank: (data.minSecurity * -1) + data.maxMoney + data.growth
-        };
-    }
+        for (const host of network) {
+            if (this.ns.getServerMaxMoney(host) === 0) continue;
+            if (this.ns.getServerRequiredHackingLevel(host) > this.ns.getHackingLevel()) continue;
 
-    private normalizeData(hostData: HostData[]): HostData[] {
-        let maxMinSecurity = hostData[0].minSecurity;
-        let minMinSecurity = hostData[0].minSecurity;
-        let maxMaxMoney = hostData[0].maxMoney;
-        let minMaxMoney = hostData[0].maxMoney;
-
-        hostData.forEach(data => {
-            if (data.minSecurity > maxMinSecurity) {
-                maxMinSecurity = data.minSecurity;
-            } else if (data.minSecurity < minMinSecurity) {
-                minMinSecurity = data.minSecurity;
-            }
-
-            if (data.maxMoney > maxMaxMoney) {
-                maxMaxMoney = data.maxMoney;
-            } else if (data.maxMoney < minMaxMoney) {
-                minMaxMoney = data.maxMoney;
-            }
-        });
-
-        return hostData.map(data => {
-            return {
-                host: data.host,
-                minSecurity: this.normalize(data.minSecurity, minMinSecurity, maxMinSecurity),
-                maxMoney: this.normalize(data.maxMoney, minMaxMoney, maxMaxMoney),
-                growth: this.normalize(data.growth, 0, 100)
-            }
-        })
-    }
-
-    private normalize(value: number, min: number, max: number): number {
-        return (value - min) / (max - min);
-    }
-
-    private fetchData(host: string): HostData {
-        return {
-            host: host,
-            minSecurity: this.ns.getServerMinSecurityLevel(host),
-            maxMoney: this.ns.getServerMaxMoney(host),
-            growth: this.ns.getServerGrowth(host)
+            hackableTargets.push(host);
         }
+
+        return hackableTargets.sort((previous, current) => this.ns.getServerGrowth(current) - this.ns.getServerGrowth(previous));
     }
-}
-
-interface RankRecord {
-    host: string,
-    rank: number
-}
-
-interface HostData {
-    host: string,
-    minSecurity: number,
-    maxMoney: number,
-    growth: number
 }
