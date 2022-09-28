@@ -6,7 +6,7 @@ export async function main(ns : NS) : Promise<void> {
     const farmScript = '/basic/farm.js';
     const scriptRam = ns.getScriptRam(farmScript, 'home');
 
-    const hosts = scanner.getNonPurchasedRootedNetwork()
+    const hosts = scanner.getRootedNetwork()
         .filter(host => ns.getServerMaxRam(host) > scriptRam);
 
     for (const host of hosts) {

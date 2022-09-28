@@ -1,6 +1,6 @@
 Ports Interface
 0 - Schedule Job <job: Job>
-1 - Job Completed <job.id: string>
+1 - Job Completed <job: Job>
 2
 3
 4

@@ -1,5 +1,5 @@
 import { NetscriptPort, NS } from '@ns'
-import { Job, JobAction } from '/lib/Job';
+import { IJob, Job, JobAction } from '/lib/Job';
 import { Queue } from '/lib/Queue';
 import { TargetRanker } from '/lib/TargetRanker';
 
@@ -9,32 +9,34 @@ export class JobScheduler {
     private targetRanker: TargetRanker;
 
     private jobQueue = new Queue<Job>();
-    private dispatchedJobToTargetMap = new Map<string, string>();
+    private targetsWithJobs = new Set<string>();
 
     constructor(private ns: NS, inputPort: number, outputPort: number) {
         this.inputPort = ns.getPortHandle(inputPort);
         this.outputPort = ns.getPortHandle(outputPort);
         this.outputPort.clear();
+        this.inputPort.clear();
         this.targetRanker = new TargetRanker(ns);
+        this.ns.disableLog('ALL');
     }
 
     public async run(): Promise<void> {
         while(true) {
-            this.sendJobToExecutor();
+            this.sendJobsToExecutor();
             this.checkForCompletedJobs();
 
             if (!this.jobQueue.isEmpty()) {
-                this.ns.print(`Jobs still in queue. waiting...`);
+                // this.ns.print(`Jobs still in queue. waiting...`);
                 await this.ns.sleep(10);
                 continue;
             }
 
             const targets = this.targetRanker.getRankedTargets()
-                .filter(target => !this.dispatchedJobToTargetMap.has(target));
+                .filter(target => !this.targetsWithJobs.has(target));
 
             if (targets.length === 0) {
-                this.ns.print(`All targets dispatched. waiting...`);
-                await this.ns.sleep(100);
+                // this.ns.print(`All targets dispatched. waiting...`);
+                await this.ns.sleep(10);
                 continue;
             }
             
@@ -49,19 +51,25 @@ export class JobScheduler {
     private checkForCompletedJobs(): void {
         if (this.inputPort.empty()) return;
 
-        const jobId = this.inputPort.read() as string;
-        this.ns.print(`Job ${jobId} Completed`);
-        this.dispatchedJobToTargetMap.delete(jobId);
+        const jobJson = this.inputPort.read() as string;
+        const completedJob = JSON.parse(jobJson) as IJob;
+        this.ns.print(`Completed Job ${completedJob.id}`);
+        this.targetsWithJobs.delete(completedJob.target);
     }
 
-    private sendJobToExecutor(): void {
+    private sendJobsToExecutor(): void {
         if (this.jobQueue.isEmpty()) return;
         if (this.outputPort.full()) return;
 
-        const job = this.jobQueue.dequeue() as Job;
-        const jobJson = JSON.stringify(job);
-        this.ns.print(`Sending Job ${job.id} to Executor`);
-        this.outputPort.write(jobJson);
+        while(!this.jobQueue.isEmpty() && !this.outputPort.full()) {
+            const job = this.jobQueue.dequeue() as Job;
+            const jobJson = JSON.stringify(job);
+            this.ns.print(`Scheduled Job ${job.id}`);
+            this.ns.print(`    Target: ${job.target}`);
+            this.ns.print(`    Action: ${job.action}`);
+            this.ns.print(`    Threads: ${job.threads}`);
+            this.outputPort.write(jobJson);
+        }
     }
 
     private createJobInQueue(target: string): void {
@@ -79,15 +87,17 @@ export class JobScheduler {
         } else if (currentMoney < (maxMoney * 0.9)) {
             const moneyNeeded = maxMoney - currentMoney;
             const growthsNeeded = Math.ceil(this.ns.growthAnalyze(target, moneyNeeded));
-            job = new Job(target, JobAction.Grow, growthsNeeded);
+            const threads = Math.min(growthsNeeded, 1250);
+            job = new Job(target, JobAction.Grow, threads);
         } else {
-            const hacksNeeded = Math.ceil(this.ns.hackAnalyzeThreads(target, currentMoney));
-            job = new Job(target, JobAction.Hack, hacksNeeded);
+            const hacksNeeded = Math.ceil(this.ns.hackAnalyzeThreads(target, currentMoney / 2));
+            const threads = Math.min(hacksNeeded, 2500);
+            job = new Job(target, JobAction.Hack, threads);
         }
 
-        this.ns.print(`Adding Job ${job.id} to Queue`);
+        // this.ns.print(`Adding Job ${job.id} to Queue`);
         this.jobQueue.enqueue(job);
-        this.dispatchedJobToTargetMap.set(job.id, target);
+        this.targetsWithJobs.add(target);
     }
 
 }
