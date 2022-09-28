@@ -12,12 +12,25 @@ export class VirtualHost {
     }
 
     public getExecutionHostMappings(job: IJob): HostThreadMapping[] {
-        const mappings: HostThreadMapping[] = [];
         let threadsToAllocate =  job.threads - job.executedThreads;
 
+        // Check if a host can handle the entire job.
         for (const host of this.hosts) {
             if (threadsToAllocate === 0) break;
 
+            const availableRam = this.ns.getServerMaxRam(host) - this.ns.getServerUsedRam(host);
+            const maxThreads = Math.floor(availableRam / job.actionRamUsage);
+
+            if (threadsToAllocate > maxThreads) continue;
+
+            return [{host: host, threads: threadsToAllocate}];
+        }
+
+        
+        const mappings: HostThreadMapping[] = [];
+        // Split job amongst hosts if necessaary
+        for (const host of this.hosts) {
+            if (threadsToAllocate === 0) break;
             if (this.ns.isRunning(job.action, host, job.target)) continue;
 
             const availableRam = this.ns.getServerMaxRam(host) - this.ns.getServerUsedRam(host);

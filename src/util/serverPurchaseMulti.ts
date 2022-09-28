@@ -13,6 +13,6 @@ export async function main(ns : NS) : Promise<void> {
 	for (let i = 0; i < num; i++) {
 		const hostname = 'worker' + (start + i).toString();
 		ns.purchaseServer(hostname, serverSize);
-		ns.scp(['/basic/weaken.js', '/basic/grow.js', '/basic/hack.js'], hostname, 'home');
+		ns.scp(['/basic/weaken.js', '/basic/grow.js', '/basic/hack.js', '/basic/farm.js'], hostname, 'home');
 	}
 }

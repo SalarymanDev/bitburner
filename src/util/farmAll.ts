@@ -13,6 +13,8 @@ export async function main(ns : NS) : Promise<void> {
         const availableRam = ns.getServerMaxRam(host) - ns.getServerUsedRam(host);
         const threads = Math.floor(availableRam / scriptRam);
 
+        if (threads === 0) continue;
+
         if (!ns.fileExists(farmScript, host)) {
             await ns.scp(farmScript, host, 'home');
         }

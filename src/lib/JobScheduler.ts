@@ -85,14 +85,12 @@ export class JobScheduler {
             const weakensNeeded = Math.ceil((currentSecurityLevel - minsSecurityLevel) / 0.05);
             job = new Job(target, JobAction.Weaken, weakensNeeded);
         } else if (currentMoney < (maxMoney * 0.9)) {
-            const moneyNeeded = maxMoney - currentMoney;
-            const growthsNeeded = Math.ceil(this.ns.growthAnalyze(target, moneyNeeded));
-            const threads = Math.min(growthsNeeded, 1250);
-            job = new Job(target, JobAction.Grow, threads);
+            const growthAmount = maxMoney / currentMoney;
+            const growthsNeeded = Math.ceil(this.ns.growthAnalyze(target, growthAmount));
+            job = new Job(target, JobAction.Grow, growthsNeeded);
         } else {
             const hacksNeeded = Math.ceil(this.ns.hackAnalyzeThreads(target, currentMoney / 2));
-            const threads = Math.min(hacksNeeded, 2500);
-            job = new Job(target, JobAction.Hack, threads);
+            job = new Job(target, JobAction.Hack, hacksNeeded);
         }
 
         // this.ns.print(`Adding Job ${job.id} to Queue`);
