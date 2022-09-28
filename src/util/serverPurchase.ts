@@ -9,4 +9,5 @@ export async function main(ns : NS) : Promise<void> {
 	const serverSize: number = ns.args[1] as number;
 	ns.tprint(`Purchasing server of size '${serverSize}' and hostname '${hostname}'`);
 	ns.purchaseServer(hostname, serverSize);
+	ns.scp(['/basic/weaken.js', '/basic/grow.js', '/basic/hack.js'], hostname, 'home');
 }

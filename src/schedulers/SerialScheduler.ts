@@ -21,19 +21,18 @@ export async function main(ns : NS) : Promise<void> {
 	}
 
     const workerMaxRam = ns.getServerMaxRam(worker);
-    const workerRam = workerMaxRam - ns.getServerUsedRam(worker);
 
 	const weakenGrowRam = ns.getScriptRam(weakenScript);
 	const hackRam = ns.getScriptRam(hackScript);
 
     const minsSecurityLevel = ns.getServerMinSecurityLevel(target);
-
     const maxMoney = ns.getServerMaxMoney(target);
 
-    const weakenGrowThreads = Math.floor(workerRam / weakenGrowRam);
-    const hackThreads = Math.floor(workerRam / hackRam);
-
     while(true) {
+        const workerRam = workerMaxRam - ns.getServerUsedRam(worker);
+        const weakenGrowThreads = Math.floor(workerRam / weakenGrowRam);
+        const hackThreads = Math.floor(workerRam / hackRam);
+
         const currentSecurityLevel = ns.getServerSecurityLevel(target);
         const currentMoney = ns.getServerMoneyAvailable(target);
 

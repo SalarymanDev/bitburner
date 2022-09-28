@@ -3,5 +3,10 @@ import { TargetRanker } from '/lib/TargetRanker';
 
 export async function main(ns : NS) : Promise<void> {
     const ranker = new TargetRanker(ns);
-    ns.tprint(`Ranked Targets: ${ranker.getRankedTargets()}`);
+    const rankedTargets = ranker.getRankedTargets();
+    rankedTargets.forEach(target => {
+        ns.tprint(target);
+        ns.tprint(ns.getServerMaxMoney(target));
+        ns.tprint('===========');
+    });
 }

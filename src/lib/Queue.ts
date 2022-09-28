@@ -23,4 +23,8 @@ export class Queue<T> implements IQueue<T> {
     isEmpty(): boolean {
         return this.storage.length === 0;
     }
+
+    peek(): T | undefined {
+        return this.storage.length > 0 ? this.storage[0] : undefined;
+    }
 }

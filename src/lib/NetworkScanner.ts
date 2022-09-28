@@ -1,41 +1,58 @@
 import { NS } from '@ns'
-import { Queue } from '/lib/Queue';
 
 export class NetworkScanner {
-    private network: Set<string>;
-    private rootedNetwork: Set<string>;
+    private network: string[];
+    private rootedNetwork: string[];
 
     constructor(private ns: NS) {
         this.network = this.scan();
-        this.rootedNetwork = new Set<string>([...this.network].filter(host => this.ns.hasRootAccess(host)));
+        this.rootedNetwork = this.network.filter(host => this.ns.hasRootAccess(host));
     }
 
-    public getNetwork(): Set<string> {
+    public getNetwork(): string[] {
         return this.network;
     }
 
-    public getRootedNetwork(): Set<string> {
+    public getRootedNetwork(): string[] {
         return this.rootedNetwork;
+    }
+
+    public getRootedNetworkMinusHome(): string[] {
+        return this.rootedNetwork.filter(host => host != 'home');
+    }
+
+    public getNonPurchasedRootedNetwork(): string[] {
+        const purchasedServers = this.ns.getPurchasedServers();
+        return this.rootedNetwork.filter(host => !purchasedServers.includes(host));
+    }
+
+    public getPurchasedNetwork(): string[] {
+        return this.ns.getPurchasedServers();
     }
 
     public update(): void {
         this.network = this.scan();
-        this.rootedNetwork = new Set<string>([...this.network].filter(host => this.ns.hasRootAccess(host)));
+        this.rootedNetwork = this.network.filter(host => this.ns.hasRootAccess(host));
     }
 
-    private scan(): Set<string> {
-        const seenHosts = new Set<string>();
-		const hostsToScan = new Queue<string>();
-		hostsToScan.enqueue(this.ns.getHostname());
+    public print(host = 'home', depth = 0, visited: Set<string> = new Set<string>()): void {
+        const depthString = new Array((depth) + 1).join('.');
+        this.ns.tprint(`${depthString}${host}`)
+        visited.add(host);
+        for (const neighbor of this.ns.scan(host)) {
+            if (!visited.has(neighbor)) {
+                this.print(neighbor, depth + 1, visited);
+            }
+        }
+    }
 
-		while(!hostsToScan.isEmpty()) {
-			const currentHost: string = hostsToScan.dequeue() ?? '';
-			const newHosts = this.ns.scan(currentHost)
-									.filter(host => !seenHosts.has(host));
-			newHosts.forEach(host => hostsToScan.enqueue(host));
-			newHosts.forEach(host => seenHosts.add(host));
-		}
-
-        return seenHosts;
+    public scan(host = 'home', depth = 0, visited: Set<string> = new Set<string>()): string[] {
+        visited.add(host);
+        for (const neighbor of this.ns.scan(host)) {
+            if (!visited.has(neighbor)) {
+                 this.scan(neighbor, depth + 1, visited);
+            }
+        }
+        return [...visited];
     }
 }
