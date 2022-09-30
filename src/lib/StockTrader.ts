@@ -89,7 +89,7 @@ export class StockTrader {
         const profit = shares * (stock.price - stock.buyPrice) - (2 * this.commission);
         this.ns.stock.sellStock(stock.symbol, shares);
         this.realizedGains += profit;
-        this.currentFunds += (shares * stock.price);
+        this.currentFunds += (shares * stock.price) - (2 * this.commission);
     }
 }
 
