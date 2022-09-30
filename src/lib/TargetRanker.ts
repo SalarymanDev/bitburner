@@ -13,6 +13,7 @@ export class TargetRanker {
         for (const host of network) {
             if (this.ns.getServerMaxMoney(host) === 0) continue;
             if (this.ns.getServerRequiredHackingLevel(host) > this.ns.getHackingLevel()) continue;
+            if (!this.ns.hasRootAccess(host)) continue;
 
             hackableTargets.push(host);
         }

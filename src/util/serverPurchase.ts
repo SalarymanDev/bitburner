@@ -8,6 +8,9 @@ export async function main(ns : NS) : Promise<void> {
 	const hostname: string = ns.args[0] as string;
 	const serverSize: number = ns.args[1] as number;
 	ns.tprint(`Purchasing server of size '${serverSize}' and hostname '${hostname}'`);
-	ns.purchaseServer(hostname, serverSize);
-	ns.scp(['/basic/weaken.js', '/basic/grow.js', '/basic/hack.js'], hostname, 'home');
+	if (ns.purchaseServer(hostname, serverSize) === hostname) {
+		ns.scp(['/basic/weaken.js', '/basic/grow.js', '/basic/hack.js', '/basic/farm.js'], hostname, 'home');
+	} else {
+		ns.tprint('Failed to purchase server!');
+	}
 }
