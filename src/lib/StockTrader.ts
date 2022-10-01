@@ -82,14 +82,14 @@ export class StockTrader {
 
     buy(stock: Stock, shares: number): void {
         this.ns.stock.buyStock(stock.symbol, shares);
-        this.currentFunds -= (shares * stock.price);
+        this.currentFunds -= ((shares * stock.price) + this.commission);
     }
 
     sell(stock: Stock, shares: number): void {
-        const profit = shares * (stock.price - stock.buyPrice) - (2 * this.commission);
+        const profit = (shares * (stock.price - stock.buyPrice)) - (2 * this.commission);
         this.ns.stock.sellStock(stock.symbol, shares);
+        this.currentFunds += ((shares * stock.price) - this.commission);
         this.realizedGains += profit;
-        this.currentFunds += (shares * stock.price) - (2 * this.commission);
     }
 }
 

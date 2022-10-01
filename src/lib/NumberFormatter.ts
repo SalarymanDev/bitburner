@@ -8,10 +8,10 @@ export class NumberFormatter {
                 continue;
             }
 
-            return (amount < 0 ? '-' : '') + num + symbol;
+            return (amount < 0 ? '-' : '') + num.toFixed(3) + symbol;
         }
 
-        return (amount < 0 ? '-' : '') + Math.abs(amount);
+        return (amount < 0 ? '-' : '') + Math.abs(amount).toFixed(3);
     }
 
     public static formatMoney(amount: number): string {
@@ -26,6 +26,6 @@ export class NumberFormatter {
             return (amount < 0 ? '-$' : '$') + num.toFixed(3) + symbol;
         }
 
-        return (amount < 0 ? '-$' : '$') + Math.abs(amount);
+        return (amount < 0 ? '-$' : '$') + Math.abs(amount).toFixed(3);
     }
 }
