@@ -7,11 +7,11 @@ export class StockTrader {
     private symbols: string[];
     private stocks: Stock[] = [];
     private myStocks: Stock[] = [];
-    private currentFunds: number;
+    private funds: number;
     private realizedGains = 0;
 
-    constructor(private ns: NS, private seedMoney: number) {
-        this.currentFunds = seedMoney;
+    constructor(private ns: NS, seedMoney: number) {
+        this.funds = seedMoney;
         this.symbols = this.ns.stock.getSymbols();
         this.ns.disableLog('ALL');
     }
@@ -31,7 +31,7 @@ export class StockTrader {
 
             // Buy shares with cash remaining
             for (const stock of this.stocks) {
-                const affordableShares = Math.floor((this.currentFunds - this.commission) / stock.price);
+                const affordableShares = Math.floor((this.funds - this.commission) / stock.price);
                 const sharesRemaining = this.ns.stock.getMaxShares(stock.symbol) - stock.shares;
                 const sharesToBuy = Math.max(Math.min(affordableShares, sharesRemaining), 0);
                 if ((sharesToBuy * stock.volatility * stock.probability * stock.price) > this.commission) {
@@ -59,7 +59,7 @@ export class StockTrader {
     printTotals(): void {
         this.ns.print('\nTotals:')
         this.ns.print(`Net Asset Value: ${NumberFormatter.formatMoney(this.myStocks.map(stock => stock.price * stock.shares).reduce((a, b) => a + b, 0))}`)
-        this.ns.print(`Liquid Cash: ${NumberFormatter.formatMoney(this.currentFunds)}`);
+        this.ns.print(`Liquid Cash: ${NumberFormatter.formatMoney(this.funds)}`);
         this.ns.print(`Unrealized P&L: ${NumberFormatter.formatMoney(this.myStocks.map(stock => (stock.price - stock.buyPrice) * stock.shares).reduce((a, b) => a + b, 0))}`);
         this.ns.print(`Realized P&L: ${NumberFormatter.formatMoney(this.realizedGains)}`);
     }
@@ -81,14 +81,14 @@ export class StockTrader {
     }
 
     buy(stock: Stock, shares: number): void {
-        this.ns.stock.buyStock(stock.symbol, shares);
-        this.currentFunds -= ((shares * stock.price) + this.commission);
+        const price = this.ns.stock.buyStock(stock.symbol, shares);
+        this.funds -= ((shares * price) + this.commission);
     }
 
     sell(stock: Stock, shares: number): void {
-        const profit = (shares * (stock.price - stock.buyPrice)) - (2 * this.commission);
-        this.ns.stock.sellStock(stock.symbol, shares);
-        this.currentFunds += ((shares * stock.price) - this.commission);
+        const price = this.ns.stock.sellStock(stock.symbol, shares);
+        const profit = (shares * (price - stock.buyPrice)) - (2 * this.commission);
+        this.funds += ((shares * price) - this.commission);
         this.realizedGains += profit;
     }
 }
