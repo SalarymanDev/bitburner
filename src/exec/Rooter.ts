@@ -9,7 +9,7 @@ export async function main(ns : NS) : Promise<void> {
         const hackingLevel = ns.getHackingLevel();
 
         for (const host of hosts) {
-            ns.scp(['/basic/weaken.js', '/basic/grow.js', '/basic/hack.js', '/basic/farm.js'], host, 'home');        
+            ns.scp(['/basic/weaken.js', '/basic/grow.js', '/basic/hack.js', '/basic/farm.js', '/basic/selfHack.js'], host, 'home');
             if (hackingLevel < ns.getServerRequiredHackingLevel(host)) continue;
             if (ns.hasRootAccess(host)) continue;
 
@@ -36,9 +36,15 @@ export async function main(ns : NS) : Promise<void> {
                 ns.sqlinject(host);
                 portsOpen++;
             }
-            if (ns.fileExists('NUKE.exe') && portsOpen > requiredPorts) {
+            if (ns.fileExists('NUKE.exe') && portsOpen >= requiredPorts) {
                 ns.nuke(host);
                 ns.print(`Rooted: ${host}`);
+                const scriptRam = ns.getScriptRam('/basic/selfHack.js', 'home');
+                const availableRam = ns.getServerMaxRam(host) - ns.getServerUsedRam(host);
+                const threads = Math.floor(availableRam / scriptRam);
+                if (threads > 0) {
+                    ns.exec('/basic/selfHack.js', host, threads);
+                }
             }
         }
 

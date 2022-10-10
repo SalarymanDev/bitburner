@@ -7,6 +7,7 @@ export class NetworkScanner {
     constructor(private ns: NS) {
         this.network = this.scan();
         this.rootedNetwork = this.network.filter(host => this.ns.hasRootAccess(host));
+        this.ns.disableLog('ALL');
     }
 
     public getNetwork(): string[] {
