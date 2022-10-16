@@ -3,6 +3,9 @@ import { NetworkScanner } from '/lib/NetworkScanner';
 
 export async function main(ns : NS) : Promise<void> {
     ns.disableLog('ALL');
+
+    const scriptToRun = ns.args[0] as string;
+
     while(true) {
         const scanner = new NetworkScanner(ns);
         const hosts = scanner.getNetwork();
@@ -39,11 +42,13 @@ export async function main(ns : NS) : Promise<void> {
             if (ns.fileExists('NUKE.exe') && portsOpen >= requiredPorts) {
                 ns.nuke(host);
                 ns.print(`Rooted: ${host}`);
-                const scriptRam = ns.getScriptRam('/basic/selfHack.js', 'home');
-                const availableRam = ns.getServerMaxRam(host) - ns.getServerUsedRam(host);
-                const threads = Math.floor(availableRam / scriptRam);
-                if (threads > 0) {
-                    ns.exec('/basic/selfHack.js', host, threads);
+                if (scriptToRun) {
+                    const scriptRam = ns.getScriptRam(scriptToRun, 'home');
+                    const availableRam = ns.getServerMaxRam(host) - ns.getServerUsedRam(host);
+                    const threads = Math.floor(availableRam / scriptRam);
+                    if (threads > 0) {
+                        ns.exec(scriptToRun, host, threads);
+                    }
                 }
             }
         }

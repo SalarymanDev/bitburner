@@ -30,11 +30,11 @@ export class JobExecutor {
 
             // No Jobs
             if (this.jobQueue.isEmpty()) {
-                // this.ns.print(`No Jobs waiting...`);
                 await this.ns.sleep(10);
                 continue;
             }
 
+            this.updateVirtualHost();
             this.executeJob();
 
             await this.ns.sleep(10);
