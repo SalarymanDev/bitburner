@@ -18,7 +18,7 @@ export class JobExecutor {
         this.outputPort = ns.getPortHandle(outputPort);
         this.outputPort.clear();
         this.network = new NetworkScanner(ns);
-        this.virtualHost = new VirtualHost(ns, this.network.getRootedNetwork());
+        this.updateVirtualHost();
         this.ns.disableLog('ALL');
     }
     
@@ -67,7 +67,7 @@ export class JobExecutor {
 
     private updateVirtualHost(): void {
         this.network.update();
-        this.virtualHost = new VirtualHost(this.ns, this.network.getRootedNetwork());
+        this.virtualHost = new VirtualHost(this.ns, this.network.getRootedNetworkMinusHome());
     }
 
     private fetchJobs(): void {
