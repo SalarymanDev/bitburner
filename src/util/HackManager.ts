@@ -43,10 +43,10 @@ export async function main(ns : NS) : Promise<void> {
 			}
 		}
 
-		// Check if any existing processes failed and restart them
+		// Check if any existing processes failed and restart them)
 		workMap.entries().forEach(([worker, work]) => {
 			if (!ns.isRunning(work.pid, worker)) {
-				const pid = ns.exec('/exec/BatchHackDynamic.js', worker, undefined, target);
+				const pid = ns.exec('/exec/BatchHackDynamic.js', worker, undefined, work.target);
 				work.pid = pid;
 				workMap.set(worker, work);
 			}
