@@ -201,6 +201,6 @@ export class BatchJobScheduler {
     }
 
     private copyScripts(host: string) {
-        this.ns.scp(['/basic/weaken.js', '/basic/grow.js', '/basic/hack.js', '/basic/farm.js'], host, 'home');
+        this.ns.scp(['/basic/weaken.js', '/basic/grow.js', '/basic/hack.js'], host, 'home');
     }
 }

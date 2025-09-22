@@ -13,7 +13,7 @@ export class JobExecutor {
     private completeJobs: IJob[] = [];
     private virtualHost: VirtualHost;
 
-    constructor(private ns: NS, inputPort: number, outputPort: number) {
+    constructor(private ns: NS, inputPort: number, outputPort: number, private includeHome = false) {
         this.inputPort = ns.getPortHandle(inputPort);
         this.outputPort = ns.getPortHandle(outputPort);
         this.outputPort.clear();
@@ -67,7 +67,8 @@ export class JobExecutor {
 
     private updateVirtualHost(): void {
         this.network.update();
-        this.virtualHost = new VirtualHost(this.ns, this.network.getRootedNetworkMinusHome());
+        const workerHosts = this.includeHome ? this.network.getRootedNetwork() : this.network.getRootedNetworkMinusHome();
+        this.virtualHost = new VirtualHost(this.ns, workerHosts);
     }
 
     private fetchJobs(): void {

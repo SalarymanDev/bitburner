@@ -6,9 +6,20 @@ export class VirtualHost {
         this.hosts = this.hosts.sort((previous, current) => ns.getServerMaxRam(current) - ns.getServerMaxRam(previous));
     }
 
-    public getAvailableRam(): number {
-        return this.hosts.map(host => this.ns.getServerMaxRam(host) - this.ns.getServerUsedRam(host))
-                         .reduce((previous, current) => previous + current);
+    public getMaxMemory(): number {
+        return this.hosts
+            .map(host => this.ns.getServerMaxRam(host))
+            .reduce((previous, current) => previous + current);
+    }
+
+    public getAvailableMemory(): number {
+        return this.hosts
+            .map(host => this.ns.getServerMaxRam(host) - this.ns.getServerUsedRam(host))
+            .reduce((previous, current) => previous + current);
+    }
+
+    public async exec(job: IJob): Promise<void> {
+        return;
     }
 
     public getExecutionHostMappings(job: IJob): HostThreadMapping[] {

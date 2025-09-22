@@ -9,54 +9,47 @@ export class BatchJob implements IBatchJob {
     public hack: ITask = {
         action: JobAction.Hack,
         threads: 0,
-        startTime: 0,
-        endTime: 0,
-        running: false
+        duration: 0,
     };
     public hackWeaken: ITask = {
         action: JobAction.Weaken,
         threads: 0,
-        startTime: 0,
-        endTime: 0,
-        running: false
+        duration: 0,
     };
     public grow: ITask = {
         action: JobAction.Grow,
         threads: 0,
-        startTime: 0,
-        endTime: 0,
-        running: false
+        duration: 0,
     };
     public growWeaken: ITask = {
         action: JobAction.Weaken,
         threads: 0,
-        startTime: 0,
-        endTime: 0,
-        running: false
+        duration: 0,
     };
 
-    constructor(public target: string, public server: string) {}
+    constructor(public target: string) {}
+
+    public totalThreads(): number {
+        return this.hack.threads + this.hackWeaken.threads + this.grow.threads + this.growWeaken.threads;
+    }
 }
 
 export interface ITask {
     action: JobAction,
-    threads: number,
-    startTime: number,
-    endTime: number,
-    running: boolean
+    duration: number,
+    threads: number
 }
 
 export interface IBatchJob {
     id: string,
     processes: Process[],
     target: string,
-    server: string,
     startTime: number,
     endTime: number,
     hack: ITask,
     hackWeaken: ITask,
     grow: ITask,
-    growWeaken: ITask
+    growWeaken: ITask,
 }
 
 export interface Process {
