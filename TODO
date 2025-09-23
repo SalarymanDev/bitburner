@@ -1,2 +1,2 @@
 TODO
-- Write new BatchJobScheduler and BatchJobExecutor that performs Hack Weaken Grow Weaken (HWGW), or Grow Weaken to min max security and money.
+- Update prepareServer script to dynamically adjust based on available memory (similar to BatchHackDynamic.ts)
