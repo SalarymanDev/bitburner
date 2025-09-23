@@ -1,5 +1,6 @@
 import { NS } from '@ns'
 import { IJob } from '/lib/Job';
+import { Job, JobAction } from '/lib/Job';
 
 export class VirtualHost {
     constructor(private ns: NS, private hosts: string[]) {
@@ -19,7 +20,36 @@ export class VirtualHost {
     }
 
     public async exec(job: IJob): Promise<void> {
-        return;
+        const executionHostMappings = this.getExecutionHostMappings(job);
+        for (const mapping of executionHostMappings) {
+            const pid = job.target ?
+                this.ns.exec(job.action, mapping.host, mapping.threads, job.target) :
+                this.ns.exec(job.action, mapping.host, mapping.threads);
+            if (pid === 0) {
+                this.ns.tprint(`Failed to execute ${job.action} on ${mapping.host}`);
+                continue;
+            }
+            job.processes.push({host: mapping.host, pid: pid, complete: false});
+            job.executedThreads += mapping.threads;
+        }
+    }
+
+    public async share(): Promise<void> {
+        const job = new Job(undefined, JobAction.Share, 1);
+        const memoryPerThread = job.actionRamUsage;
+        const availableMemory = this.getAvailableMemory();
+        const maxThreads = Math.floor(availableMemory / memoryPerThread);
+        if (maxThreads === 0) {
+            this.ns.tprint('No available memory to share');
+            return;
+        }
+
+        job.threads = maxThreads;
+        await this.exec(job);
+
+        while (job.processes.some(p => this.ns.isRunning(p.pid))) {
+            await this.ns.sleep(1000);
+        }
     }
 
     public getExecutionHostMappings(job: IJob): HostThreadMapping[] {
@@ -42,7 +72,8 @@ export class VirtualHost {
         // Split job amongst hosts if necessaary
         for (const host of this.hosts) {
             if (threadsToAllocate === 0) break;
-            if (this.ns.isRunning(job.action, host, job.target)) continue;
+            const alreadyRunning = job.target ? this.ns.isRunning(job.action, host, job.target) : this.ns.isRunning(job.action, host);
+            if (alreadyRunning) continue;
 
             const availableRam = this.ns.getServerMaxRam(host) - this.ns.getServerUsedRam(host);
             const maxThreads = Math.floor(availableRam / job.actionRamUsage);

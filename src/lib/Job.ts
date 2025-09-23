@@ -5,7 +5,22 @@ export class Job implements IJob {
     public actionRamUsage: number;
 
     constructor(public target: string, public action: JobAction, public threads: number) {
-        this.actionRamUsage = action === JobAction.Hack ? 1.7 : 1.75;
+        switch (action) {
+            case JobAction.Hack:
+                this.actionRamUsage = 1.7;
+                break;
+            case JobAction.Grow:
+                this.actionRamUsage = 1.75;
+                break;
+            case JobAction.Weaken:
+                this.actionRamUsage = 1.75;
+                break;
+            case JobAction.Share:
+                this.actionRamUsage = 4.0;
+                break;
+            default:
+                throw new Error(`Invalid Job Action: ${action}`);
+        }
     }
 }
 
@@ -28,7 +43,8 @@ export interface Process {
 export enum JobAction {
     Weaken = '/basic/weaken.js',
     Grow = '/basic/grow.js',
-    Hack = '/basic/hack.js'
+    Hack = '/basic/hack.js',
+    Share = '/basic/share.js',
 }
 
 export const uuid = (): string =>

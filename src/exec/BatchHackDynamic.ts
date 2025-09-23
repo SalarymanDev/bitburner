@@ -4,7 +4,7 @@ import { BatchJob } from '/lib/BatchJob';
 export async function main(ns : NS) : Promise<void> {
 	const target = ns.args[0] as string;
 	const host = ns.getHostname();
-	// const minsSecurityLevel = ns.getServerMinSecurityLevel(target);
+	const minsSecurityLevel = ns.getServerMinSecurityLevel(target);
 	const maxMoney = ns.getServerMaxMoney(target);
 
 	// const currentSecurityLevel = ns.getServerSecurityLevel(target);
@@ -52,6 +52,7 @@ export async function main(ns : NS) : Promise<void> {
 		const availableMemory = (maxMemory - ns.getServerUsedRam(host)) * 0.9;
 		let totalMemoryNeeded = Infinity;
 
+		let canProceed = false;
 		while (totalMemoryNeeded > availableMemory && amountToHack > 0) {
 			amountToHack -= 10000;
 
@@ -59,8 +60,15 @@ export async function main(ns : NS) : Promise<void> {
 			growTime = ns.getGrowTime(target);
 			weakenTime = ns.getWeakenTime(target);
 			hackThreadsNeeded = Math.ceil(ns.hackAnalyzeThreads(target, amountToHack));
+			if (isNaN(hackThreadsNeeded) || hackThreadsNeeded === Infinity) hackThreadsNeeded = 0;
 			hackSecurityIncrease = hackThreadsNeeded * 0.002;
-			growthThreadsNeeded = Math.ceil(ns.growthAnalyze(target, (maxMoney / (maxMoney - amountToHack)) + 0.01));
+			const growthFactor = maxMoney / (maxMoney - amountToHack);
+			if (isNaN(growthFactor) || growthFactor === Infinity) {
+				growthThreadsNeeded = 0;
+			} else {
+				growthThreadsNeeded = Math.ceil(ns.growthAnalyze(target, growthFactor + 0.01));
+			}
+			if (isNaN(growthThreadsNeeded) || growthThreadsNeeded === Infinity) growthThreadsNeeded = 0;
 			growSecurityIncrease = ns.growthAnalyzeSecurity(growthThreadsNeeded);
 			weakenThreadsNeededForHack = Math.ceil(hackSecurityIncrease / 0.05);
 			weakenThreadsNeededForGrow = Math.ceil(growSecurityIncrease / 0.05);
@@ -70,12 +78,16 @@ export async function main(ns : NS) : Promise<void> {
 			const hackMemoryPerThread = 1.70;
 
 			totalMemoryNeeded = (hackThreadsNeeded * hackMemoryPerThread) + (weakenThreadsNeededForHack * weakenMemoryPerThread) + (growthThreadsNeeded * growMemoryPerThread) + (weakenThreadsNeededForGrow * weakenMemoryPerThread);
+			if (totalMemoryNeeded <= availableMemory && hackThreadsNeeded > 0 && growthThreadsNeeded > 0 && weakenThreadsNeededForHack > 0 && weakenThreadsNeededForGrow > 0) {
+				canProceed = true;
+				break;
+			}
 		}
 
-		if (hackThreadsNeeded === 0) {
-			ns.tprint(`No threads needed for hacking ${target}, exiting...`);
-			ns.tprint(`Available Memory: ${availableMemory}GB`);
-			return;
+		if (!canProceed) {
+			// Wait until enough memory is available
+			await ns.sleep(1000);
+			continue;
 		}
 
 		const batchJob = new BatchJob(target);
@@ -89,6 +101,47 @@ export async function main(ns : NS) : Promise<void> {
 		batchJob.growWeaken.duration = weakenTime;
 
 		await runBatchHack(ns, batchJob, host);
+
+		// Post-batch verification and correction
+		const currentSecurityLevel = ns.getServerSecurityLevel(target);
+		const currentMoney = ns.getServerMoneyAvailable(target);
+
+		if (currentSecurityLevel > minsSecurityLevel + 0.1) {
+			const securityDiff = currentSecurityLevel - minsSecurityLevel;
+			const weakenThreads = Math.ceil(securityDiff / 0.05);
+			const weakenRamNeeded = weakenThreads * 1.75;
+			const availableRam = (maxMemory - ns.getServerUsedRam(host)) * 0.9;
+			if (weakenRamNeeded <= availableRam) {
+				const weakenPid = ns.exec('/basic/weaken.ts', host, weakenThreads, target);
+				if (weakenPid > 0) {
+					await ns.sleep(ns.getWeakenTime(target) + 100);
+				}
+			}
+		}
+
+		if (currentMoney < maxMoney * 0.99) {
+			const growthFactor = maxMoney / currentMoney;
+			const growThreads = Math.ceil(ns.growthAnalyze(target, growthFactor));
+			const growRamNeeded = growThreads * 1.75;
+			const availableRam = (maxMemory - ns.getServerUsedRam(host)) * 0.9;
+			if (growRamNeeded <= availableRam) {
+				const growPid = ns.exec('/basic/grow.ts', host, growThreads, target);
+				if (growPid > 0) {
+					await ns.sleep(ns.getGrowTime(target) + 100);
+					const growSecurityIncrease = ns.growthAnalyzeSecurity(growThreads);
+					const weakenThreadsForGrow = Math.ceil(growSecurityIncrease / 0.05);
+					const weakenRamNeeded2 = weakenThreadsForGrow * 1.75;
+					const availableRam2 = (maxMemory - ns.getServerUsedRam(host)) * 0.9;
+					if (weakenRamNeeded2 <= availableRam2) {
+						const weakenPid2 = ns.exec('/basic/weaken.ts', host, weakenThreadsForGrow, target);
+						if (weakenPid2 > 0) {
+							await ns.sleep(ns.getWeakenTime(target) + 100);
+						}
+					}
+				}
+			}
+		}
+
 		await ns.sleep(500);
 	}
 }
@@ -103,34 +156,33 @@ async function runBatchHack(ns: NS, job: BatchJob, host: string): Promise<void> 
 	const hackEnd = hackWeakenEnd - 50;
 	const hackStart = hackEnd - job.hack.duration;
 
-	// ns.tprint(`Hack Weakend Start: ${hackWeakenStart}`);
-	// ns.tprint(`Hack Weaken End: ${hackWeakenEnd}`);
-	// ns.tprint(`Grow Weaken Start: ${growWeakenStart}`);
-	// ns.tprint(`Grow Weaken End: ${growWeakenEnd}`);
-	// ns.tprint(`Grow Start: ${growStart}`);
-	// ns.tprint(`Grow End: ${growEnd}`);
-	// ns.tprint(`Hack Start: ${hackStart}`);
-	// ns.tprint(`Hack End: ${hackEnd}`);
-	// ns.tprint(``);
-
-	// const hackWeakenSleep = 0;
 	const growWeakenSleep = growWeakenStart - hackWeakenStart;
 	const growSleep = growStart - growWeakenStart;
 	const hackSleep = hackStart - growStart;
 
-	// ns.tprint(`hackWeakenSleep: ${hackWeakenSleep}`);
-	// ns.tprint(`growWeakenSleep: ${growWeakenSleep}`);
-	// ns.tprint(`growSleep: ${growSleep}`);
-	// ns.tprint(`hackSleep: ${hackSleep}`);
-	// ns.tprint(``);
-
 	const hackWeakenPid = ns.exec(job.hackWeaken.action, host, job.hackWeaken.threads, job.target);
+	if (hackWeakenPid === 0) {
+		ns.tprint(`Failed to exec hackWeaken on ${job.target}`);
+		return;
+	}
 	await ns.sleep(growWeakenSleep);
 	const growWeakenPid = ns.exec(job.growWeaken.action, host, job.growWeaken.threads, job.target);
+	if (growWeakenPid === 0) {
+		ns.tprint(`Failed to exec growWeaken on ${job.target}`);
+		return;
+	}
 	await ns.sleep(growSleep);
 	const growPid = ns.exec(job.grow.action, host, job.grow.threads, job.target);
+	if (growPid === 0) {
+		ns.tprint(`Failed to exec grow on ${job.target}`);
+		return;
+	}
 	await ns.sleep(hackSleep);
 	const hackPid = ns.exec(job.hack.action, host, job.hack.threads, job.target);
+	if (hackPid === 0) {
+		ns.tprint(`Failed to exec hack on ${job.target}`);
+		return;
+	}
 
 	// Wait to complete
 	while (ns.isRunning(hackWeakenPid) || ns.isRunning(growWeakenPid) || ns.isRunning(growPid) || ns.isRunning(hackPid)) {

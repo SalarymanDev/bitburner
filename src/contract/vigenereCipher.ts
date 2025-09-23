@@ -33,9 +33,10 @@ import { NS } from '@ns'
  */
 
 export async function main(ns : NS) : Promise<void> {
+	const contractName = ns.args[0] as string;
+	const hostname = ns.args[1] as string;
 	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	const plaintext = "ARRAYLOGINLOGICTRASHDEBUG";
-	const keyword = "BLOGGER";
+	const [plaintext, keyword] = ns.codingcontract.getData(contractName, hostname) as string[];
 	const key = keyword.repeat(Math.ceil(plaintext.length / keyword.length)).substring(0, plaintext.length);
 	
 	let ciphertext = "";
@@ -45,7 +46,10 @@ export async function main(ns : NS) : Promise<void> {
 		ciphertext += alphabet[(row + col) % 26];
 	}
 
-	ns.tprint(plaintext);
-	ns.tprint(key);
-	ns.tprint(ciphertext);
+	const reward = ns.codingcontract.attempt(ciphertext, contractName, hostname);
+	if (reward) {
+		ns.tprint(`Contract solved! Reward: ${reward}`);
+	} else {
+		ns.tprint('Failed to solve the contract.');
+	}
 }

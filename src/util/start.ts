@@ -12,6 +12,7 @@ export async function main(ns : NS) : Promise<void> {
     });
 
     ns.exec('/exec/Rooter.js', 'home');
+    ns.exec('/util/crackServers.js', 'home');
 
     const deployPid = ns.exec('/util/deployCode.js', 'home');
     while (ns.isRunning(deployPid)) {

@@ -12,7 +12,8 @@ export async function main(ns : NS) : Promise<void> {
         const hackingLevel = ns.getHackingLevel();
 
         for (const host of hosts) {
-            ns.scp(['/basic/weaken.js', '/basic/grow.js', '/basic/hack.js', '/basic/selfHack.js'], host, 'home');
+            const files = ns.ls('home', '.js');
+            ns.scp(files, host, 'home');
             if (hackingLevel < ns.getServerRequiredHackingLevel(host)) continue;
             if (ns.hasRootAccess(host)) continue;
 

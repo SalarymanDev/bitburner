@@ -14,7 +14,10 @@ import { NS } from '@ns'
  */
 
 export async function main(ns : NS) : Promise<void> {
-	const prices = [151,102,4,119,6,50,13,72,16,82,136,88,43,34,70,100,126,30,63,180,84,164,144,182,29,151,168,100,66,115,58,64,175,186,163,79,120,125,33,78,25,113,165,74,137,126,166,38,40];
+	const contractName = ns.args[0] as string;
+	const hostname = ns.args[1] as string;
+
+	const prices = ns.codingcontract.getData(contractName, hostname) as number[];
 	let maxProfit = 0;
 
 	for (let buyIndex = 0; buyIndex < prices.length; buyIndex++) {
@@ -26,5 +29,10 @@ export async function main(ns : NS) : Promise<void> {
 		}
 	}
 
-	ns.tprint(maxProfit);
+	const reward = ns.codingcontract.attempt(maxProfit, contractName, hostname);
+	if (reward) {
+		ns.tprint(`Contract solved! Reward: ${reward}`);
+	} else {
+		ns.tprint('Failed to solve the contract.');
+	}
 }

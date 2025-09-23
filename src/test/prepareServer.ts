@@ -23,7 +23,7 @@ async function growMoney(ns: NS, target: string, servers: string[]): Promise<voi
 	}
 
 	while (currentMoney < maxMoney) {
-		const growthThreadsNeeded = Math.ceil(ns.growthAnalyze(target, 1.5));
+		const growthThreadsNeeded = Math.ceil(ns.growthAnalyze(target, maxMoney / currentMoney));
 		const growTime = ns.getGrowTime(target);
 		const growSecurityIncrease = ns.growthAnalyzeSecurity(growthThreadsNeeded);
 
