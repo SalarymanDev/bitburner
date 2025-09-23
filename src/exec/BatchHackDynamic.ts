@@ -1,5 +1,6 @@
 import { NS } from '@ns'
 import { BatchJob } from '/lib/BatchJob';
+import { JobAction } from '/lib/Job';
 
 export async function main(ns : NS) : Promise<void> {
 	const target = ns.args[0] as string;
@@ -78,7 +79,8 @@ export async function main(ns : NS) : Promise<void> {
 			const hackMemoryPerThread = 1.70;
 
 			totalMemoryNeeded = (hackThreadsNeeded * hackMemoryPerThread) + (weakenThreadsNeededForHack * weakenMemoryPerThread) + (growthThreadsNeeded * growMemoryPerThread) + (weakenThreadsNeededForGrow * weakenMemoryPerThread);
-			if (totalMemoryNeeded <= availableMemory && hackThreadsNeeded > 0 && growthThreadsNeeded > 0 && weakenThreadsNeededForHack > 0 && weakenThreadsNeededForGrow > 0) {
+			if (totalMemoryNeeded < availableMemory && hackThreadsNeeded > 0 && growthThreadsNeeded > 0 && weakenThreadsNeededForHack > 0 && weakenThreadsNeededForGrow > 0) {
+				ns.print(`Proceeding with batch hack on ${target}.\nAmount able to hack ${amountToHack}.\nWith threads: Hack ${hackThreadsNeeded}, Hack Weaken ${weakenThreadsNeededForHack}, Grow ${growthThreadsNeeded}, Grow Weaken ${weakenThreadsNeededForGrow}.\nTotal Memory Needed: ${totalMemoryNeeded.toFixed(2)}GB, Available: ${availableMemory.toFixed(2)}GB.`);
 				canProceed = true;
 				break;
 			}
@@ -86,6 +88,7 @@ export async function main(ns : NS) : Promise<void> {
 
 		if (!canProceed) {
 			// Wait until enough memory is available
+			ns.print(`Amount unable to hack ${amountToHack}.\nWith threads: Hack ${hackThreadsNeeded}, Hack Weaken ${weakenThreadsNeededForHack}, Grow ${growthThreadsNeeded}, Grow Weaken ${weakenThreadsNeededForGrow}.\nTotal Memory Needed: ${totalMemoryNeeded.toFixed(2)}GB, Available: ${availableMemory.toFixed(2)}GB.`);
 			await ns.sleep(1000);
 			continue;
 		}
@@ -112,7 +115,7 @@ export async function main(ns : NS) : Promise<void> {
 			const weakenRamNeeded = weakenThreads * 1.75;
 			const availableRam = (maxMemory - ns.getServerUsedRam(host)) * 0.9;
 			if (weakenRamNeeded <= availableRam) {
-				const weakenPid = ns.exec('/basic/weaken.ts', host, weakenThreads, target);
+				const weakenPid = ns.exec(JobAction.Weaken, host, weakenThreads, target);
 				if (weakenPid > 0) {
 					await ns.sleep(ns.getWeakenTime(target) + 100);
 				}
@@ -125,7 +128,7 @@ export async function main(ns : NS) : Promise<void> {
 			const growRamNeeded = growThreads * 1.75;
 			const availableRam = (maxMemory - ns.getServerUsedRam(host)) * 0.9;
 			if (growRamNeeded <= availableRam) {
-				const growPid = ns.exec('/basic/grow.ts', host, growThreads, target);
+				const growPid = ns.exec(JobAction.Grow, host, growThreads, target);
 				if (growPid > 0) {
 					await ns.sleep(ns.getGrowTime(target) + 100);
 					const growSecurityIncrease = ns.growthAnalyzeSecurity(growThreads);
@@ -133,7 +136,7 @@ export async function main(ns : NS) : Promise<void> {
 					const weakenRamNeeded2 = weakenThreadsForGrow * 1.75;
 					const availableRam2 = (maxMemory - ns.getServerUsedRam(host)) * 0.9;
 					if (weakenRamNeeded2 <= availableRam2) {
-						const weakenPid2 = ns.exec('/basic/weaken.ts', host, weakenThreadsForGrow, target);
+						const weakenPid2 = ns.exec(JobAction.Weaken, host, weakenThreadsForGrow, target);
 						if (weakenPid2 > 0) {
 							await ns.sleep(ns.getWeakenTime(target) + 100);
 						}
