@@ -3,7 +3,6 @@ import { TargetRanker } from '/lib/TargetRanker';
 
 export async function main(ns : NS) : Promise<void> {
     ns.exec('/util/deployCode.js', 'home');
-    ns.exec('/exec/Rooter.js', 'home');
 
     const ranker = new TargetRanker(ns);
 	const targets = ranker.getRankedTargets();
@@ -12,4 +11,7 @@ export async function main(ns : NS) : Promise<void> {
 	targets.forEach(target => {
 		pids.push(ns.exec('/exec/PrepareServer.js', 'home', undefined, target));
 	});
+
+    ns.exec('/exec/Rooter.js', 'home');
+    ns.exec('/util/shareMemory.js', 'home');
 }
