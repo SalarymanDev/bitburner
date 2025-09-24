@@ -11,6 +11,30 @@ export async function main(ns : NS) : Promise<void> {
 	ns.tprint(`Server Preperation Complete for ${target}!`);
 }
 
+function getGrowThreadsNeeded(ns: NS, target: string, currentMoney: number, maxMoney: number, server: Server): number {
+	if (ns.fileExists('Formulas.exe', 'home')) {
+		return ns.formulas.hacking.growThreads(ns.getServer(target), ns.getPlayer(), maxMoney, server.cpuCores);
+	}
+	
+	return Math.ceil(ns.growthAnalyze(target, maxMoney / currentMoney));
+}
+
+function getGrowTime(ns: NS, target: string, server: Server, player: Player) {
+	if (ns.fileExists('Formulas.exe', 'home')) {
+		return ns.formulas.hacking.growTime(server, player);
+	}
+
+	return ns.getGrowTime(target);
+}
+
+function getWeakenTime(ns: NS, target: string, server: Server, player: Player) {
+	if (ns.fileExists('Formulas.exe', 'home')) {
+		return ns.formulas.hacking.weakenTime(server, player);
+	}
+
+	return ns.getWeakenTime(target);
+}
+
 async function growMoney(ns: NS, target: string, server: Server, player: Player): Promise<void> {
 	const maxMoney = ns.getServerMaxMoney(target);
 	let currentMoney = ns.getServerMoneyAvailable(target);
@@ -20,11 +44,11 @@ async function growMoney(ns: NS, target: string, server: Server, player: Player)
 	}
 
 	while (currentMoney < maxMoney) {
-		const growthThreadsNeeded = ns.formulas.hacking.growThreads(ns.getServer(target), ns.getPlayer(), maxMoney, server.cpuCores);
-		const growTime = ns.formulas.hacking.growTime(server, player);
+		const growthThreadsNeeded = getGrowThreadsNeeded(ns, target, currentMoney, maxMoney, server);
+		const growTime = getGrowTime(ns, target, server, player);
 		const growSecurityIncrease = ns.growthAnalyzeSecurity(growthThreadsNeeded, target, server.cpuCores);
 
-		const weakenTime = ns.formulas.hacking.weakenTime(server, player);
+		const weakenTime = getWeakenTime(ns, target, server, player);
 		const weakenThreadsNeededForGrow = Math.ceil(growSecurityIncrease / 0.05);
 		ns.weakenAnalyze(weakenThreadsNeededForGrow, server.cpuCores);
 		
@@ -58,7 +82,7 @@ async function breakSecurity(ns: NS, target: string, server: Server, player: Pla
 	while (currentSecurityLevel > minSecurityLevel) {
 		const weakenThreadsNeeded = Math.ceil((currentSecurityLevel - minSecurityLevel) / 0.05);
 
-		const weakenTime = ns.formulas.hacking.weakenTime(server, player);
+		const weakenTime = getWeakenTime(ns, target, server, player);
 		const weakenPid = ns.exec(JobAction.Weaken, server.hostname, weakenThreadsNeeded, target);
 		await ns.sleep(weakenTime + 100);
 
