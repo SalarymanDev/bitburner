@@ -21,6 +21,15 @@ export class StockTrader {
         this.ns.disableLog('ALL');
     }
 
+    sellAll(): void {
+        this.refresh();
+        this.allStocks.forEach(stock => {
+            this.ns.stock.getPosition(stock.symbol).forEach(position => {
+                this.ns.stock.sellStock(stock.symbol, position);
+            });
+        });
+    }
+
     async run(): Promise<void> {
         while(true) {
             this.ns.clearLog();

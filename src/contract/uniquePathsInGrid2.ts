@@ -28,7 +28,6 @@ export async function main(ns : NS) : Promise<void> {
 	const contractName = ns.args[0] as string;
 	const hostname = ns.args[1] as string;
 	const grid = ns.codingcontract.getData(contractName, hostname) as number[][];
-	ns.tprint(grid);
 	const numRows = grid.length;
 	const numCols = grid[0].length;
 	const memo: {[key: string]: number} = {};

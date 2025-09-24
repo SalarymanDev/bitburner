@@ -1,0 +1,34 @@
+import { NS } from '@ns'
+
+/** 
+ * Encryption I: Caesar Cipher
+ * Caesar cipher is one of the simplest encryption technique. It is a type of substitution cipher in which each letter in the plaintext  is replaced by a letter some fixed number of positions down the alphabet. For example, with a left shift of 3, D would be replaced by A,  E would become B, and A would become X (because of rotation).
+ * 
+ * You are given an array with two elements:
+ * ["FRAME SHELL SHIFT MOUSE DEBUG", 16]
+ * The first element is the plaintext, the second element is the left shift value.
+ * 
+ * Return the ciphertext as uppercase string. Spaces remains the same.
+ */
+
+export async function main(ns : NS) : Promise<void> {
+	const contractName = ns.args[0] as string;
+	const hostname = ns.args[1] as string;
+	const [plaintext, shift] = ns.codingcontract.getData(contractName, hostname) as [string, number];
+
+	const result = plaintext.split('').map(char => {
+		if (char === ' ') return ' ';
+		const base = 'A'.charCodeAt(0);
+		const charCode = char.charCodeAt(0);
+		// Apply left shift with wrap-around
+		const shiftedCode = ((charCode - base - shift + 26) % 26) + base;
+		return String.fromCharCode(shiftedCode);
+	}).join('');
+
+	const reward = ns.codingcontract.attempt(result, contractName, hostname);
+	if (reward) {
+		ns.tprint(`Contract solved! Reward: ${reward}`);
+	} else {
+		ns.tprint('Failed to solve the contract.');
+	}
+}

@@ -7,6 +7,6 @@ export async function main(ns : NS) : Promise<void> {
 	const pids = [];
 
 	targets.forEach(target => {
-		pids.push(ns.exec('/test/prepareServer.js', 'home', undefined, target));
+		pids.push(ns.exec('/exec/PrepareServer.js', 'home', undefined, target));
 	});
 }
