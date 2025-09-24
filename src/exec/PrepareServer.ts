@@ -8,7 +8,6 @@ export async function main(ns : NS) : Promise<void> {
 	
 	await breakSecurity(ns, target, server, player);
 	await growMoney(ns, target, server, player);
-	ns.tprint(`Server Preperation Complete for ${target}!`);
 	ns.spawn('/exec/BatchHackDynamic.js', { spawnDelay: 0 }, target);
 }
 

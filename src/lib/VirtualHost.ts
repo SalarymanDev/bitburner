@@ -46,9 +46,10 @@ export class VirtualHost {
 
         job.threads = maxThreads;
         await this.exec(job);
+        await this.ns.sleep(10000);
 
         while (job.processes.some(p => this.ns.isRunning(p.pid))) {
-            await this.ns.sleep(1000);
+            await this.ns.sleep(500);
         }
     }
 
