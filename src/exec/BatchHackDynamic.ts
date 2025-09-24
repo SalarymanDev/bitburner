@@ -2,40 +2,35 @@ import { NS } from '@ns'
 import { BatchJob } from '/lib/BatchJob';
 import { JobAction } from '/lib/Job';
 
+function getHackTime(ns: NS, target: string, server: Server, player: Player): number {
+	if (ns.fileExists('Formulas.exe', 'home')) {
+		return ns.formulas.hacking.hackTime(server, player);
+	}
+	return ns.getHackTime(target);
+}
+
+function getGrowTime(ns: NS, target: string, server: Server, player: Player): number {
+	if (ns.fileExists('Formulas.exe', 'home')) {
+		return ns.formulas.hacking.growTime(server, player);
+	}
+	return ns.getGrowTime(target);
+}
+
+function getWeakenTime(ns: NS, target: string, server: Server, player: Player): number {
+	if (ns.fileExists('Formulas.exe', 'home')) {
+		return ns.formulas.hacking.weakenTime(server, player);
+	}
+	return ns.getWeakenTime(target);
+}
+
 export async function main(ns : NS) : Promise<void> {
 	const target = ns.args[0] as string;
 	const host = ns.getHostname();
+	const server = ns.getServer(host);
+	const player = ns.getPlayer();
 	const minsSecurityLevel = ns.getServerMinSecurityLevel(target);
 	const maxMoney = ns.getServerMaxMoney(target);
-
-	// const currentSecurityLevel = ns.getServerSecurityLevel(target);
-	// const currentMoney = ns.getServerMoneyAvailable(target);
-
 	const maxMemory = ns.getServerMaxRam(host);
-	
-
-	// ns.tprint(`Target: ${target}`);
-	// ns.tprint(` Current Security Level: ${currentSecurityLevel}`);
-	// ns.tprint(` Minimum Security Level: ${minsSecurityLevel}`);
-	// ns.tprint(` Current Money: $${currentMoney}`);
-	// ns.tprint(` Maximum Money: $${maxMoney}`);
-	// ns.tprint(` Total Memory Needed: ${totalMemoryNeeded}GB`);
-	// ns.tprint(``);
-	// ns.tprint(`Total Available RAM: ${availableMemory}GB`);
-	// ns.tprint(`Max RAM: ${maxMemory}GB`);
-	// ns.tprint(``);
-	// ns.tprint(`Amount to Hack: $${amountToHack}`);
-	// ns.tprint(` Hack Threads Needed: ${hackThreadsNeeded}`);
-	// ns.tprint(` Hack Time: ${hackTime}ms`);
-	// ns.tprint(` Security Increase: ${hackSecurityIncrease}`);
-	// ns.tprint(`Hack Weaken Threads Needed: ${weakenThreadsNeededForHack}`);
-	// ns.tprint(` Weaken Time: ${weakenTime}ms`);
-	// ns.tprint(`Growth Threads Needed: ${growthThreadsNeeded}`);
-	// ns.tprint(` Grow Time: ${growTime}ms`);
-	// ns.tprint(` Security Increase: ${growSecurityIncrease}`);
-	// ns.tprint(`Weaken Threads Needed: ${weakenThreadsNeededForGrow}`);
-	// ns.tprint(` Weaken Time: ${weakenTime}ms`);
-	// ns.tprint(``);
 
 	while (true) {
 		let amountToHack = (maxMoney / 2) + 10000;
@@ -57,9 +52,9 @@ export async function main(ns : NS) : Promise<void> {
 		while (totalMemoryNeeded > availableMemory && amountToHack > 0) {
 			amountToHack -= 10000;
 
-			hackTime = ns.getHackTime(target);
-			growTime = ns.getGrowTime(target);
-			weakenTime = ns.getWeakenTime(target);
+			hackTime = getHackTime(ns, target, server, player);
+			growTime = getGrowTime(ns, target, server, player);
+			weakenTime = getWeakenTime(ns, target, server, player);
 			hackThreadsNeeded = Math.ceil(ns.hackAnalyzeThreads(target, amountToHack));
 			if (isNaN(hackThreadsNeeded) || hackThreadsNeeded === Infinity) hackThreadsNeeded = 0;
 			hackSecurityIncrease = hackThreadsNeeded * 0.002;
