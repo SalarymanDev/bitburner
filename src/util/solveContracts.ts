@@ -6,7 +6,7 @@ const contractTypeToSolverMap = new Map<string, string>([
 	['Total Ways to Sum', '/contract/totalWaysToSum.js'],
 	['Minimum Path Sum in a Triangle', '/contract/minimumPathSumInATriangle.js'],
 	['Compression I: RLE Compression', '/contract/compressionRLE.js'],
-	['Compression II: LZ Decompression', '/contract/lzDecompression.js'],
+	['Compression II: LZ Decompression', '/contract/decompressionLZ.js'],
 	['Compression III: LZ Compression', '/contract/compressionLZ.js'],
 	['Sanitize Parentheses in Expression', '/contract/sanitizeParenthesis.js'],
 	['Array Jumping Game', '/contract/arrayJumping.js'],
@@ -31,6 +31,7 @@ const contractTypeToSolverMap = new Map<string, string>([
 	['Generate IP Addresses', '/contract/generateIPAddresses.js'],
 	['Proper 2-Coloring of a Graph', '/contract/graphTwoColoring.js'],
 	['Merge Overlapping Intervals', '/contract/mergeOverlappingIntervals.js'],
+	['Find All Valid Math Expressions', '/contract/findAllValidMathExpressions.js'],
 ]);
 
 export async function main(ns : NS) : Promise<void> {
@@ -44,9 +45,11 @@ export async function main(ns : NS) : Promise<void> {
 		for (const contractName of contracts) {
 			const contract = ns.codingcontract.getContract(contractName, host);
 			if (contractTypeToSolverMap.has(contract.type)) {
-				// ns.tprint(`Solving ${contract.type} on ${host}`);
 				const pid = ns.exec(contractTypeToSolverMap.get(contract.type), 'home', undefined, contractName, host);
-				// ns.tprint(`Started solver with PID ${pid}`);
+				if (pid === 0) {
+					ns.tprint(`Failed to start solver for ${contract.type}`);
+					continue;
+				}
 			} else {
 				ns.tprint(`No solver for ${contract.type}`);
 				ns.tprint(`Host: ${host} File: ${contractName}`);
