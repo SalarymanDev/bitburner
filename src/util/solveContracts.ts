@@ -35,29 +35,30 @@ const contractTypeToSolverMap = new Map<string, string>([
 ]);
 
 export async function main(ns : NS) : Promise<void> {
-	const scanner = new NetworkScanner(ns);
-    const network = [...scanner.getNetwork()];
-	let contractsFound = 0;
-	for (const host of network) {
-		const contracts = ns.ls(host, '.cct');
-		contractsFound += contracts.length;
-		if (contracts.length === 0) continue;
-		for (const contractName of contracts) {
-			const contract = ns.codingcontract.getContract(contractName, host);
-			if (contractTypeToSolverMap.has(contract.type)) {
-				const pid = ns.exec(contractTypeToSolverMap.get(contract.type), 'home', undefined, contractName, host);
-				if (pid === 0) {
-					ns.tprint(`Failed to start solver for ${contract.type}`);
-					continue;
+	ns.disableLog('ALL');
+	
+	while (true) {
+		const scanner = new NetworkScanner(ns);
+		const network = [...scanner.getNetwork()];
+		for (const host of network) {
+			const contracts = ns.ls(host, '.cct');
+			if (contracts.length === 0) continue;
+			for (const contractName of contracts) {
+				const contract = ns.codingcontract.getContract(contractName, host);
+				if (contractTypeToSolverMap.has(contract.type)) {
+					const pid = ns.exec(contractTypeToSolverMap.get(contract.type), 'home', undefined, contractName, host);
+					if (pid === 0) {
+						ns.print(`Failed to start solver for ${contract.type}`);
+						continue;
+					}
+				} else {
+					ns.print(`No solver for ${contract.type}`);
+					ns.print(`Host: ${host} File: ${contractName}`);
+					ns.print(`Type: ${contract.type}`);
+					ns.print(`Description: ${contract.description}\n\n`);
 				}
-			} else {
-				ns.tprint(`No solver for ${contract.type}`);
-				ns.tprint(`Host: ${host} File: ${contractName}`);
-				ns.tprint(`Type: ${contract.type}`);
-				ns.tprint(`Description: ${contract.description}\n\n`);
 			}
 		}
+		await ns.sleep(10000);
 	}
-
-	ns.tprint(`Contracts found: ${contractsFound}`);
 }

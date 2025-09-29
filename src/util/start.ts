@@ -13,5 +13,6 @@ export async function main(ns : NS) : Promise<void> {
 	});
 
     ns.exec('/exec/Rooter.js', 'home');
+	ns.exec('/util/solveContracts.js', 'home');
     ns.exec('/util/shareMemory.js', 'home');
 }
