@@ -41,6 +41,7 @@ export async function main(ns : NS) : Promise<void> {
             if (ns.fileExists('NUKE.exe') && portsOpen >= requiredPorts) {
                 ns.nuke(host);
                 ns.print(`Rooted: ${host}`);
+                // ns.exec('/basic/selfHack.js', host, 1);
                 ns.exec('/exec/PrepareServer.js', 'home', undefined, host);
             }
         }

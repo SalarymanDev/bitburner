@@ -18,6 +18,6 @@ export class TargetRanker {
             hackableTargets.push(host);
         }
 
-        return hackableTargets.sort((previous, current) => this.ns.getServerGrowth(current) - this.ns.getServerGrowth(previous));
+        return hackableTargets.sort((previous, current) => this.ns.getWeakenTime(previous) - this.ns.getWeakenTime(current));
     }
 }
