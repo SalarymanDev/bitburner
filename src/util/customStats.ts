@@ -22,22 +22,22 @@ export async function main(ns : NS) : Promise<void> {
             }
 
             headers.push("Hacknet Income: ");
-            values.push('$' + ns.formatNumber(hacknetTotalProduction, 1) + '/s');
+            values.push('$' + ns.formatNumber(hacknetTotalProduction) + '/s');
 
             headers.push("Hacknet Profit: ");
-            values.push('$' + ns.formatNumber(hacknetTotalProfit, 1));
+            values.push('$' + ns.formatNumber(hacknetTotalProfit));
 
             headers.push("Script Income: ");
-            values.push('$' + ns.formatNumber(ns.getTotalScriptIncome()[0], 1) + '/s');
+            values.push('$' + ns.formatNumber(ns.getTotalScriptIncome()[0]) + '/s');
 
             headers.push("Script Experience: ");
-            values.push(ns.formatNumber(ns.getTotalScriptExpGain(), 1) + '/s');
+            values.push(ns.formatNumber(ns.getTotalScriptExpGain()) + '/s');
 
             headers.push("Share Power: ");
             values.push((ns.getSharePower().toPrecision(2) * 100) + "%");
 
             headers.push("Karma: ");
-            values.push(ns.formatNumber(ns.heart.break(), 1));
+            values.push(ns.formatNumber(ns.heart.break()));
 
             headers.push("People Killed: ");
             values.push(ns.getPlayer().numPeopleKilled);
