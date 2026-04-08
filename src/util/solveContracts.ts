@@ -48,7 +48,7 @@ export async function main(ns : NS) : Promise<void> {
 				if (contractTypeToSolverMap.has(contract.type)) {
 					const pid = ns.exec(contractTypeToSolverMap.get(contract.type), 'home', undefined, contractName, host);
 					if (pid === 0) {
-						ns.print(`Failed to start solver for ${contract.type}`);
+						ns.print(`Failed to start solver for ${contract.type}. Command "${contractTypeToSolverMap.get(contract.type)} ${contractName} ${host}"`);
 						continue;
 					}
 				} else {
