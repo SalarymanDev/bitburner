@@ -5,7 +5,7 @@ export async function main(ns : NS) : Promise<void> {
 	await trainingMontage(ns);
 	await killingSpree(ns);
 	ns.singularity.stopAction();
-	// ns.spawn('gang/grow.js');
+	ns.spawn('gang/grow.js');
 }
 
 async function trainingMontage(ns: NS) : Promise<void> {
