@@ -5,7 +5,7 @@ export async function main(ns : NS) : Promise<void> {
 
 	const gangMembers = ns.gang.getMemberNames();
 	for (const member of gangMembers) {
-		ns.gang.setMemberTask(member, 'Teritory Warfare');
+		ns.gang.setMemberTask(member, 'Tertitory Warfare');
 	}
 
 	// Check until we can wipe the floor with the other gangs.
@@ -14,7 +14,7 @@ export async function main(ns : NS) : Promise<void> {
 		
 		const otherGangs = ns.gang.getOtherGangInformation();
 		for (const gang in otherGangs) {
-			if (ns.gang.getChanceToWinClash(gang) < 0.8) {
+			if (ns.gang.getChanceToWinClash(gang) < 0.95) {
 				canWin = false;
 			}
 		}

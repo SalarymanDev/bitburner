@@ -4,42 +4,45 @@ const ascendTheshold = 1.1;
 let memberNameCounter = 0;
 const multiplierRankToRespectTask = new Map<number, string>([
 	[0, "Mug People"],
-	[1, "Deal Drugs"],
-	[2, "Strongarm Civilians"],
-	[3, "Run a Con"],
-	[4, "Traffick Illegal Arms"],
-	[5, "Terrorism"]
+	[1, "Run a Con"],
+	[2, "Traffick Illegal Arms"],
+	[3, "Terrorism"],
 ]);
 
 export async function main(ns : NS) : Promise<void> {
-	ns.disableLog("sleep");
+	ns.disableLog('ALL');
 
 	initGang(ns);
-	await train(ns, 10);
-	await growGang(ns, 2, 2);
+	await train(ns, 1.5);
+	await growGang(ns, 1, 6);
 	await train(ns, 20);
-	await growGang(ns, 2, 2);
+	await growGang(ns, 1, 12);
+
+	// Train for war!
 	await train(ns, 30);
-	await growGang(ns, 2, 2);
-	await train(ns, 50);
 
 	ns.print('SUCCESS: Gang Grown!');
 	ns.spawn('gang/war.js')
 }
 
 function initGang(ns: NS): void {
+	memberNameCounter += ns.gang.getMemberNames().length;
+
 	while(ns.gang.canRecruitMember()) {
 		ns.gang.recruitMember(`${memberNameCounter++}`);
 	}
 }
 
 async function train(ns: NS, minimumMultiplier: number): Promise<void> {
+	ns.print(`Training Gang to Minimum Multiplier ${minimumMultiplier}...`);
 	const gangMembersCompleted = new Set();
 	while(true) {
 		const gangMembers = ns.gang.getMemberNames();
 
 		for (const member of gangMembers) {
-			ns.gang.setMemberTask(member, 'Train Combat');
+			if (ns.gang.getMemberInformation(member).task != 'Train Combat') {
+				ns.gang.setMemberTask(member, 'Train Combat');
+			}
 		}
 
 		for (const member of gangMembers) {
@@ -53,7 +56,7 @@ async function train(ns: NS, minimumMultiplier: number): Promise<void> {
 				ns.gang.ascendMember(member);
 			}
 		}
-		if (gangMembersCompleted.size() == ns.gang.getMemberNames().length) {
+		if (gangMembersCompleted.size == ns.gang.getMemberNames().length) {
 			ns.print(`SUCCESS: Gang Trained to Minimum Multiplier ${minimumMultiplier}`);
 			return;
 		}
@@ -63,23 +66,27 @@ async function train(ns: NS, minimumMultiplier: number): Promise<void> {
 
 function calculateCombatRank(ns: NS, member: string): number {
 	const info = ns.gang.getMemberInformation(member);
-	if (info.str_asc_mult < 10) {
+	if (info.str_asc_mult < 2) {
 		return 0;
-	} else if (info.str_asc_mult < 20) {
+	} else if (info.str_asc_mult < 5) {
 		return 1;
-	} else if (info.str_asc_mult < 30) {
+	} else if (info.str_asc_mult < 10) {
 		return 2;
-	} else if (info.str_asc_mult < 40) {
+	} else if (info.str_asc_mult < 20) {
 		return 3;
-	} else if (info.str_asc_mult < 50) {
-		return 4;
 	} else {
-		return 5;
+		return 3;
 	}
 }
 
-async function growGang(ns: NS, vigilanteAmount: number, numberOfNewMembers: number): Promise<void> {
+async function growGang(ns: NS, vigilanteAmount: number, targetMembers: number): Promise<void> {
 	let recruited = 0;
+	const numberToRecruit = targetMembers - ns.gang.getMemberNames().length;
+	if (numberToRecruit <= 0) {
+		ns.print(`SUCCESS: Gang already at Target Members ${targetMembers}!`);
+		return;
+	}
+	ns.print(`Recruiting ${numberToRecruit} members for target members ${targetMembers}...`);
 
 	while(true) {
 		if (ns.gang.respectForNextRecruit() == Infinity) {
@@ -91,14 +98,14 @@ async function growGang(ns: NS, vigilanteAmount: number, numberOfNewMembers: num
 		if (ns.gang.canRecruitMember()) {
 			ns.gang.recruitMember(`${memberNameCounter++}`);
 			recruited++;
-			if (recruited == numberOfNewMembers) {
+			if (recruited == numberToRecruit) {
+				ns.print(`SUCCESS: Gang Increased to Target Members ${targetMembers}!`);
 				return;
 			}
 		}
 
-		const gangMembers = ns.gang.getMemberNames();
-		gangMembers.sort((a, b) => {
-			return ns.gang.getMemberInformation(b).str_asc_mult - ns.gang.getMemberInformation(a).str_asc_mult;
+		const gangMembers = ns.gang.getMemberNames().sort((a, b) => {
+			return ns.gang.getMemberInformation(a).str_asc_mult - ns.gang.getMemberInformation(b).str_asc_mult;
 		});
 
 		let vigilantes = 0;
