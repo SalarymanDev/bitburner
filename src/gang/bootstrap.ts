@@ -82,7 +82,7 @@ async function killingSpree(ns: NS): Promise<void> {
 		if (ns.singularity.checkFactionInvitations().includes('Slum Snakes')) {
 			ns.singularity.joinFaction('Slum Snakes');
 		}
-		if (ns.getPlayer().karma <= -54000 && ns.singularity.checkFactionInvitations().includes('Slum Snakes') && ns.gang.createGang('Slum Snakes')) {
+		if (ns.getPlayer().karma <= -54000 && ns.getPlayer().factions.includes('Slum Snakes') && ns.gang.createGang('Slum Snakes')) {
 			ns.print('SUCCESS: Created Gang!');
 			return;
 		}
