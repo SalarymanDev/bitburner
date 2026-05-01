@@ -1,10 +1,10 @@
 import { NS } from '@ns'
 
-const ascendTheshold = 1.1;
+const ascendTheshold = 1.2;
 let memberNameCounter = 0;
 const multiplierRankToRespectTask = new Map<number, string>([
 	[0, "Mug People"],
-	[1, "Run a Con"],
+	[1, "Strongarm Civilians"],
 	[2, "Traffick Illegal Arms"],
 	[3, "Terrorism"],
 ]);
@@ -12,17 +12,18 @@ const multiplierRankToRespectTask = new Map<number, string>([
 export async function main(ns : NS) : Promise<void> {
 	ns.disableLog('ALL');
 
+	ns.gang.renameMember('10', '5');
 	initGang(ns);
-	await train(ns, 1.5);
-	await growGang(ns, 1, 6);
-	await train(ns, 20);
-	await growGang(ns, 1, 12);
+	await train(ns, 3);
+	await growGang(ns, 2, 6);
+	await train(ns, 15);
+	await growGang(ns, 2, 12);
 
 	// Train for war!
-	await train(ns, 30);
+	await train(ns, 15);
 
 	ns.print('SUCCESS: Gang Grown!');
-	ns.spawn('gang/war.js')
+	ns.spawn('gang/war.js', {spawnDelay: 0});
 }
 
 function initGang(ns: NS): void {
@@ -68,12 +69,10 @@ function calculateCombatRank(ns: NS, member: string): number {
 	const info = ns.gang.getMemberInformation(member);
 	if (info.str_asc_mult < 2) {
 		return 0;
-	} else if (info.str_asc_mult < 5) {
+	} else if (info.str_asc_mult < 15) {
 		return 1;
-	} else if (info.str_asc_mult < 10) {
-		return 2;
 	} else if (info.str_asc_mult < 20) {
-		return 3;
+		return 2;
 	} else {
 		return 3;
 	}
