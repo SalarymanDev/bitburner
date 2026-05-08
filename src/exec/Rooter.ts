@@ -12,6 +12,7 @@ export async function main(ns : NS) : Promise<void> {
         for (const host of hosts) {
             const files = ns.ls('home', '.js');
             ns.scp(files, host, 'home');
+            if (host.includes('hacknet-server-')) continue;
             if (hackingLevel < ns.getServerRequiredHackingLevel(host)) continue;
             if (ns.hasRootAccess(host)) continue;
 

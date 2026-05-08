@@ -11,6 +11,7 @@ export class TargetRanker {
         const hackableTargets: string[] = [];
 
         for (const host of network) {
+            if (host.includes('hacknet-server-')) continue;
             if (this.ns.getServerMaxMoney(host) === 0) continue;
             if (this.ns.getServerRequiredHackingLevel(host) > this.ns.getHackingLevel()) continue;
             if (!this.ns.hasRootAccess(host)) continue;

@@ -35,9 +35,10 @@ export async function main(ns : NS) : Promise<void> {
 async function attemptPassword(ns: NS, host: string, password: string, hint: string, format: string, length: number, suppressLog = false): string | null {
 	const result = await ns.dnet.authenticate(host, password);
 
-	if (!suppressLog && !result.success) {
-		ns.tprint(`ERROR:${ns.getHostname()}: Failed to authenticate with password '${password}' on '${host}' with details:\n\tHint: ${hint}\n\tFormat: ${format}\n\tLength: ${length}`);
-	}
+	// if (!suppressLog && !result.success && result.code != 351) {
+	// 	ns.tprint(`${host}: Code:${result.code} Success:${result.success} Message:${result.message}`);
+	// 	ns.tprint(`ERROR:${ns.getHostname()}: Failed to authenticate with password '${password}' on '${host}' with details:\n\tHint: ${hint}\n\tFormat: ${format}\n\tLength: ${length}`);
+	// }
 	
 	if (result.success) {
 		// Update password db
@@ -67,6 +68,7 @@ async function crackPassword(ns: NS, host: string): string | null {
 	} else if (hint == 'Type the numbers to prove you are human') {
 		return await attemptPassword(ns, host, data.replace(/\D/g, ''), hint, format, length);
 	} else if (hint == 'The password is a number between 0 and 100') {
+		// binary search
 		for (let i = 0; i < 100; i++) {
 			const result = await attemptPassword(ns, host, i.toString(), hint, format, length, true);
 			if (result !== null) {
@@ -117,16 +119,17 @@ async function crackPassword(ns: NS, host: string): string | null {
 				// }
 			}
 		}
-	} else if (hint == 'The password is the value of the number ') {
-		// roman numeral 'CLXX'
-		// return await attemptPassword(ns, host, '', hint, format, length);
+	} else if (hint.includes('The password is the value of the number ')) {
+		const romanNumerals = hint.replace('The password is the value of the number ', '').replaceAll('\'', '');
+		const password = romandNumeralToNumber(romanNumerals).toString();
+		return await attemptPassword(ns, host, password, hint, format, length);
 	} else if (hint.includes('the password is the base ')) {
 		// the password is the base 15 number 2D in base 10
 		const stringParts = hint.replace('the password is the base ', '').replace('number ', '').replace('in base ', '').split(' ');
 		const sourceBase = +stringParts[0];
 		const number = parseInt(stringParts[1], sourceBase);
 		return await attemptPassword(ns, host, number.toString(), hint, format, length);
-	} else if (hint.includes('The key is made from ')) {
+	} else if (hint.includes('The key is made from ') || hint.includes('The PIN uses ')) {
 		const baseString = hint.replace('The key is made from ', '');
 		const permutations = findPermutation(baseString);
 		for (const permutation of permutations) {
@@ -135,10 +138,12 @@ async function crackPassword(ns: NS, host: string): string | null {
 				return result;
 			}
 		}
+		return null;
 	} else if (hint.includes('Warning: password buffer is ')) {
 		await ns.dnet.authenticate(host, 'abcdefghijklmnopqrstuvwxyz0123456789');
 		const result = await ns.dnet.heartbleed(host);
 		ns.tprint(`WARN: ${result.message} ${result.code} ${result.data} ${result.logs}`);
+		return null;
 		// const baseString = result.message.split(', ')[1].replace('expected', '').replace('\'', '');
 		// const permutations = findPermutation(baseString);
 		// for (const permutation of permutations) {
@@ -192,4 +197,47 @@ function findPermutation(s: string): Set<string> {
 
     result.sort(); 
     return new Set(result);
+}
+
+function romandNumeralToNumber(romanNumeral: string): number {
+	let previousValue = 0;
+	let result = 0;
+
+	for (const character of romanNumeral) {
+		let currentValue = 0;
+		switch (character) {
+			case 'I':
+				currentValue = 1;
+				break;
+			case 'V':
+				currentValue = 5;
+				break;
+			case 'X':
+				currentValue = 10;
+				break;
+			case 'L':
+				currentValue = 50;
+				break;
+			case 'C':
+				currentValue = 100;
+				break;
+			case 'D':
+				currentValue = 500;
+				break;
+			case 'M':
+				currentValue = 1000;
+				break;
+			default:
+				break;
+		}
+		if (previousValue < currentValue) {
+			result += currentValue - previousValue;
+		} else {
+			result += currentValue;
+		}
+
+		previousValue = currentValue;
+	}
+
+	return result;
 }
