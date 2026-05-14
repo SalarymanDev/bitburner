@@ -23,7 +23,7 @@ export async function main(ns : NS) : Promise<void> {
 	await train(ns, 15);
 
 	ns.print('SUCCESS: Gang Grown!');
-	ns.spawn('gang/war.js', {spawnDelay: 0});
+	// ns.spawn('gang/war.js', {spawnDelay: 0});
 }
 
 function initGang(ns: NS): void {

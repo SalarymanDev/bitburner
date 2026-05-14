@@ -13,7 +13,7 @@ export async function main(ns : NS) : Promise<void> {
 	while(true) {
 		let canWin = true;
 		
-		const otherGangs = ns.gang.getOtherGangInformation();
+		const otherGangs = ns.gang.getAllGangInformation();
 		for (const gang in otherGangs) {
 			if (gang === ns.gang.getGangInformation().faction) {
 				continue;

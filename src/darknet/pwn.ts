@@ -97,7 +97,7 @@ async function crackPassword(ns: NS, host: string): string | null {
 				const authResult = await ns.dnet.authenticate(host, digits.join('') + n.toString());
 				if (authResult.success) return digits.join('') + n.toString();
 				const result = await ns.dnet.heartbleed(host, { peek: true });
-				ns.tprint(`${host}: ${result.logs[0]}`);
+				// ns.tprint(`${host}: ${result.logs[0]}`);
 			}
 		}
 	} else if (hint == "you are one who's'nt authorized") {
@@ -108,7 +108,7 @@ async function crackPassword(ns: NS, host: string): string | null {
 				if (authResult.success) return digits.join('') + n.toString();
 				const result = await ns.dnet.heartbleed(host, { peek: true });
 				const log: Log = JSON.parse(result.logs[0]);
-				ns.tprint(`${host}: ${log.data}`);
+				// ns.tprint(`${host}: ${log.data}`);
 				if (log.data.split(',')[0] > i) {
 					digits.push(n.toString());
 					break;
@@ -167,7 +167,7 @@ async function crackPassword(ns: NS, host: string): string | null {
 	}
 
 
-	ns.tprint(`ERROR:${ns.getHostname()}: Failed to attempt on '${host}' with details:\n\tHint: ${hint}\n\tFormat: ${format}\n\tLength: ${length}`);
+	// ns.tprint(`ERROR:${ns.getHostname()}: Failed to attempt on '${host}' with details:\n\tHint: ${hint}\n\tFormat: ${format}\n\tLength: ${length}`);
 
 	return null;
 }
